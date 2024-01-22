@@ -1,0 +1,21 @@
+{
+  "name": "3dproject",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@types/three": "^0.159.0",
+    "typescript": "^5.2.2",
+    "vite": "^5.0.8"
+  },
+  "dependencies": {
+    "simplex-noise": "^4.0.1",
+    "three": "^0.159.0",
+    "three.terrain.js": "^2.0.0"
+  }
+}
