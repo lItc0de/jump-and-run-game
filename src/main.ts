@@ -1,5 +1,6 @@
 import {
   ACESFilmicToneMapping,
+  Clock,
   Color,
   FloatType,
   PCFSoftShadowMap,
@@ -7,14 +8,18 @@ import {
   PerspectiveCamera,
   PointLight,
   SRGBColorSpace,
+  Vector3,
   WebGLRenderer,
 } from "three";
-import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
 import { asyncAnimationFrame } from "./utils";
 import BusterDrone from "./models/buster_drone/busterDrone";
 import MainScene from "./mainScene";
-import { RGBELoader } from "three/examples/jsm/Addons.js";
+import {
+  PointerLockControls,
+  RGBELoader,
+  RapierPhysicsObject,
+} from "three/examples/jsm/Addons.js";
 
 import "./style.css";
 
@@ -23,12 +28,12 @@ class Main {
   camera: PerspectiveCamera;
   renderer: WebGLRenderer;
   animating = false;
-  controls: OrbitControls;
+  controls: PointerLockControls;
+  physicsObjects: RapierPhysicsObject[] = [];
 
   busterDrone?: BusterDrone;
 
   constructor() {
-    this.scene = new MainScene();
     this.camera = new PerspectiveCamera(
       45,
       window.innerWidth / window.innerHeight,
@@ -36,7 +41,9 @@ class Main {
       1000
     );
     // this.camera.position.set(0, 0, 50);
-    this.camera.position.set(-17, 31, 33);
+    // this.camera.position.set(-17, 31, 33);
+    this.camera.position.set(0, 10, 22);
+    this.camera.lookAt(0, 8, 15);
 
     this.renderer = new WebGLRenderer({ antialias: true });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -44,6 +51,18 @@ class Main {
     this.renderer.outputColorSpace = SRGBColorSpace;
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = PCFSoftShadowMap;
+
+    // this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+    // this.controls.target.set(0, 0, 0);
+    // this.controls.dampingFactor = 0.05;
+    // this.controls.enableDamping = true;
+
+    this.controls = new PointerLockControls(
+      this.camera,
+      this.renderer.domElement
+    );
+
+    this.scene = new MainScene(this.controls, this.camera);
 
     // const ambientLight = new HemisphereLight("white", "darkslategrey", 5);
     // this.scene.add(ambientLight);
@@ -64,10 +83,7 @@ class Main {
     this.addResizeAction();
     document.body.appendChild(this.renderer.domElement);
 
-    this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-    this.controls.target.set(0, 0, 0);
-    this.controls.dampingFactor = 0.05;
-    this.controls.enableDamping = true;
+    this.addMouseEventListener();
   }
 
   // async loadModels() {
@@ -99,13 +115,17 @@ class Main {
     // this.scene.add(sphereMesh);
     this.animating = true;
     this.animate();
+
+    this.controls.connect();
   }
 
   private async animate() {
+    const clock = new Clock();
     do {
-      await this.scene.tick();
+      await this.scene.tick(clock);
       this.renderer.render(this.scene, this.camera);
-      this.controls.update();
+      // console.log(this.controls.isLocked);
+      // this.controls.update();
       await asyncAnimationFrame();
     } while (this.animating);
   }
@@ -115,6 +135,12 @@ class Main {
       this.renderer.setSize(window.innerWidth, window.innerHeight);
       this.camera.aspect = window.innerWidth / window.innerHeight;
       this.camera.updateProjectionMatrix();
+    });
+  }
+
+  private addMouseEventListener() {
+    this.renderer.domElement.addEventListener("mousedown", () => {
+      this.controls.lock();
     });
   }
 }

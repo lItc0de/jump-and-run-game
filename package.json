@@ -14,6 +14,7 @@
     "vite": "^5.0.8"
   },
   "dependencies": {
+    "@dimforge/rapier3d": "^0.11.2",
     "simplex-noise": "^4.0.1",
     "three": "^0.159.0",
     "three.terrain.js": "^2.0.0"

@@ -1,20 +1,37 @@
 import {
+  Camera,
+  Clock,
   Color,
   CylinderGeometry,
   DoubleSide,
   Mesh,
   MeshPhysicalMaterial,
   Scene,
-  SphereGeometry,
   Texture,
   TextureLoader,
   Vector2,
 } from "three";
 import HexagonBox, { HexagonType } from "./hexagonBox";
 import { createNoise2D } from "simplex-noise";
+import Player from "./player";
+import {
+  OrbitControls,
+  PointerLockControls,
+} from "three/examples/jsm/Addons.js";
 
 class MainScene extends Scene {
+  private controls: PointerLockControls;
+  private camera: Camera;
   private envMap?: Texture;
+
+  player: Player;
+
+  constructor(controls: PointerLockControls, camera: Camera) {
+    super();
+    this.controls = controls;
+    this.camera = camera;
+    this.player = new Player(this.controls, this.camera);
+  }
 
   async init(envMap: Texture) {
     this.envMap = envMap;
@@ -109,9 +126,15 @@ class MainScene extends Scene {
     mapFloor.receiveShadow = true;
     mapFloor.position.set(0, -HexagonBox.MAX_HEIGHT * 0.05, 0);
     this.add(mapFloor);
+
+    // Player
+    await this.player.init();
+    if (this.player.model) this.add(this.player.model);
   }
 
-  async tick() {}
+  async tick(clock: Clock) {
+    this.player.update(clock);
+  }
 
   private tile2position(tileX: number, tileY: number): Vector2 {
     return new Vector2((tileX + (tileY % 2) * 0.5) * 1.77, tileY * 1.535);
